@@ -1,56 +1,41 @@
-class Arma{
- method poderDeAtaque() 
-
-}
-
-class DeFilo inherits Arma{
- const longitud
- const filo 
- override method poderDeAtaque()= longitud * (filo.max(0).min(1))
-}
-
-class Contundente inherits Arma{
- const peso
-
- override method poderDeAtaque()= peso
-}
-
-class Armadura{
-  method puntosDeArmadura(unGladiador)
-
-}
-
-class Casco inherits Armadura{
-
- override method puntosDeArmadura(unGladiador)= 10
-}
-
-class Escudo inherits Armadura{
- override method puntosDeArmadura(unGladiador)= 5 + (unGladiador.puntosDeDestreza.0.1)
-}
+import armas.*
+import armaduras.*
 
 class Gladiador{
-  var Vida = 100
+  var vida = 100
   var fuerza
   var destreza
+
+  method fuerza()=fuerza
+  method vida() = vida
   method puntosDeDefensa()
+  method puntosDeDestreza() = destreza 
+  method poderDeAtaque()
+ 
   method atacar(unGladiadorAtacado){ unGladiadorAtacado.recibirDanio(self)}
   
-  
-  method puntosDeDestreza() = destreza
   method recibirDanio(unGladiadorAtacante){
-    vida = vida -(unGladiadorAtacante.poderDeAtaque - self.puntosDeDefensa())
+    vida = vida -(unGladiadorAtacante.poderDeAtaque() - self.puntosDeDefensa()).max(0)
   }
-  method poderDeAtaque()
+  
   method pelea(unGladiadorAtacado){
     self.atacar(unGladiadorAtacado)
     unGladiadorAtacado.atacar(self)
   }
+  method crearNombreGrupoCon(UnGladiador)
+  
+  method crearGrupoCon(unGladiador){
+    const grupo = new GrupoDeGladiadores(nombreDeGrupo = self.crearNombreGrupoCon(unGladiador))
+    grupo.agregarGladiador(self)
+    grupo.agregarGladiador(unGladiador)
+    return grupo
+  }
+
 }
 
 class Mirmillones inherits Gladiador(destreza=15){
   var armadura 
-  var Arma
+  var arma
   method cambiarArma(unArma){
     arma = unArma
   }
@@ -61,29 +46,39 @@ class Mirmillones inherits Gladiador(destreza=15){
  method cambiarArmadura(unaArmadura){
   armadura = unaArmadura
  }
-  override method puntosDeDefensa()= armadura.puntosDeArmadura() + destreza
+  override method puntosDeDefensa()= armadura.puntosDeArmadura(self) + destreza
   
   override method poderDeAtaque()= arma.poderDeAtaque() + fuerza
   
+  override method crearNombreGrupoCon(unGladiador) = "mirmillolandia"
 }
 
 class Dimachaerus inherits Gladiador(fuerza=10){
-  const arma =[]
+  const armas =[]
+  method agregarArma(unArma){
+    armas.add(unArma)
+  }
   method cambiarDestreza(){
-    destreza =+ 1
+    destreza =destreza + 1
 }
  override method puntosDeDefensa() = destreza /2
- override method poderDeAtaque()= fuerza + arma.sum({a=>a.})
+ override method poderDeAtaque()= fuerza + arma.sum({a=>a.poderDeAtaque()})
  override method atacar(unGladiadorAtacado){
    super(unGladiadorAtacado)
    self.cambiarDestreza()
  }
+
+ override method crearNombreGrupoCon(unGladiador) = "D-" + (self.poderDeAtaque() + unGladiador.poderDeAtaque())
 }
 
 class GrupoDeGladiadores{
   const listaDeGladiadores=[]
   const nombreDeGrupo
-  var cantCombates
+  var cantCombates = 0
+
+  method cambiarCantCombates(){
+    cantCombates = cantCombates + 1
+  }
 
   method agregarGladiador(unGladiador){
     listaDeGladiadores.add(unGladiador)
@@ -91,12 +86,14 @@ class GrupoDeGladiadores{
   method quitarGladiador(unGladiador){
     listaDeGladiadores.remove(unGladiador)
   } 
-  method campeonMasFuerte(){
+  method campeonMasFuerte()=
     listaDeGladiadores.filter({l=>l.vida() > 0}).max({l=>l.fuerza()})
-  }
+  
   method combate(otroGrupo){
-    self.campeonMasFuerte().atacar(otroGrupo.campeonMasFuerte())
+   self.campeonMasFuerte().pelea(otroGrupo.campeonMasFuerte())
   }
+
+ 
 
  // method ejecutarNVeces(){
  //   (1..3).forEach(e => )
